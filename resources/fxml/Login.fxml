@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<StackPane alignment="CENTER" stylesheets="@../css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.antrian.ui.controller.LoginController">
+   <children>
+      <VBox alignment="CENTER" spacing="20.0" styleClass="form-container">
+         <children>
+            <ImageView fitHeight="120.0" fitWidth="120.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../img/logo.png" />
+               </image>
+            </ImageView>
+            <Text styleClass="title-text" text="Selamat Datang" />
+            <VBox spacing="10.0">
+               <children>
+                  <Label text="Email Atau Nama" />
+                  <TextField fx:id="emailField" promptText="Email Atau Nama" />
+               </children>
+            </VBox>
+            <VBox spacing="10.0">
+               <children>
+                  <Label text="Password" />
+                  <PasswordField fx:id="passwordField" promptText="Password" />
+               </children>
+            </VBox>
+            <Button maxWidth="1.7976931348623157E308" onAction="#handleLoginButtonAction" text="Masuk" />
+            <Hyperlink onAction="#goToRegister" text="Belum punya akun? Daftar di sini" />
+            <Label fx:id="errorLabel" textFill="#b00020" />
+         </children>
+      </VBox>
+   </children>
+</StackPane>

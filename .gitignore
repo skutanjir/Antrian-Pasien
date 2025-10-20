@@ -1,0 +1,19 @@
+# Folder build dan bin
+/build/
+/bin/
+
+# File IDE
+*.class
+*.iml
+.idea/
+.vscode/
+
+# Sistem
+.DS_Store
+Thumbs.db
+
+# Log
+*.log
+
+# File konfigurasi pribadi
+config.json

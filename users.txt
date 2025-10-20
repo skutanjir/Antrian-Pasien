@@ -1,0 +1,2 @@
+000;Admin;Kantor;08123;admin@app.com;01/01/2000;admin123;admin
+76543;yanto;myunhtbgrvfe;876543;yanto@gmail.com;07/10/2025;Iniyanto;pasien
