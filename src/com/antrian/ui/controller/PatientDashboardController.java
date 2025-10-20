@@ -14,8 +14,37 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Kelas {@code PatientDashboardController} mengatur tampilan dan logika dashboard
+ * untuk pengguna dengan peran pasien.
+ * <p>
+ * Pasien dapat melihat riwayat antrian yang mereka buat, melakukan penyaringan data,
+ * serta menambahkan antrian baru melalui form pendaftaran.
+ * </p>
+ *
+ * <p>Fitur utama:</p>
+ * <ul>
+ *   <li>Menampilkan daftar antrian yang dibuat oleh pasien yang sedang login.</li>
+ *   <li>Melakukan pembaruan otomatis terhadap status antrian.</li>
+ *   <li>Membuka form pembuatan antrian baru.</li>
+ * </ul>
+ *
+ * <p>Kelas ini merupakan turunan dari {@link BaseDashboardController}.</p>
+ *
+ * @author
+ *  Sulistyo Fajar Pratama,
+ *  Dinda Diyah Arifa,
+ *  Musthofa Agung Distyawan
+ * @version 1.0
+ * @since 2025
+ */
 public class PatientDashboardController extends BaseDashboardController {
 
+    /**
+     * Memuat data antrian khusus untuk pasien yang sedang login.
+     * Data akan difilter berdasarkan NIK pembuat yang sesuai
+     * dengan pengguna saat ini.
+     */
     @Override
     protected void loadAntrianData() {
         try {
@@ -29,12 +58,17 @@ public class PatientDashboardController extends BaseDashboardController {
         }
     }
 
+    /**
+     * Menangani aksi tombol "Buat Antrian".
+     * <p>Membuka jendela form baru untuk membuat antrian dan
+     * memperbarui tampilan dashboard setelah data tersimpan.</p>
+     */
     @FXML
     private void handleBuatAntrian() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/BuatAntrian.fxml"));
             Parent parent = loader.load();
-            
+
             BuatAntrianController controller = loader.getController();
             controller.setCallback(this::loadAntrianData);
 
