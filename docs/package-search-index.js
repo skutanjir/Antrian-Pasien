@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html","k":"18"},{"l":"com.antrian.core.model"},{"l":"com.antrian.core.service"},{"l":"com.antrian.ui"},{"l":"com.antrian.ui.controller"}];updateSearchResults();
