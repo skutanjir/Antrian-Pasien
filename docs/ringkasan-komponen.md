@@ -1,4 +1,11 @@
-ir, String password)`**: Konstruktor ini menyalin seluruh parameter ke field internal agar objek `User` langsung siap dipakai sebagai representasi data pengguna dasar. Dengan menginisialisasi setiap kolom sejak awal, aplikasi bisa mengandalkan objek ini untuk dipersistensikan ataupun ditampilkan tanpa perlu setter tambahan.
+# Penjelasan Mendalam Komponen Aplikasi Antrian Pasien
+
+Dokumen ini menjelaskan secara rinci tanggung jawab setiap kelas Java (model, service, controller) dan berkas FXML pada aplikasi JavaFX **Antrian Pasien**. Fokus utamanya adalah memberikan deskripsi yang lebih panjang mengenai apa yang dikerjakan setiap fungsi sehingga memudahkan proses pemeliharaan maupun pengembangan fitur baru.
+
+## Model (`src/com/antrian/core/model`)
+
+### `User`
+- **`User(String nik, String nama, String alamat, String noTelepon, String email, String tanggalLahir, String password)`**: Konstruktor ini menyalin seluruh parameter ke field internal agar objek `User` langsung siap dipakai sebagai representasi data pengguna dasar. Dengan menginisialisasi setiap kolom sejak awal, aplikasi bisa mengandalkan objek ini untuk dipersistensikan ataupun ditampilkan tanpa perlu setter tambahan.
 - **`getNik()`**: Mengembalikan NIK yang tersimpan di objek dan sering dipakai sebagai identitas unik ketika mencari pengguna di file. Dengan menyediakan akses read-only, kode lain bisa menggunakannya untuk validasi tanpa risiko mengubah nilai.
 - **`getNama()`**: Memberikan nama lengkap pengguna yang ditampilkan pada label sambutan dashboard. Metode ini memastikan tampilan memperoleh data langsung dari model resmi, menjaga konsistensi antar layar.
 - **`getAlamat()`**: Menyediakan alamat rumah pengguna, misalnya untuk menyalin data pasien saat pembuatan antrian baru. Karena alamat disimpan sebagai satu string, getter ini menjaga struktur data tetap sederhana.
