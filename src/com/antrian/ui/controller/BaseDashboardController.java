@@ -8,7 +8,7 @@ import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
+// import javafx.fxml.FXMLLoader; // Dihapus
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -17,8 +17,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
+// import javafx.stage.Modality; // Dihapus
+// import javafx.stage.Stage; // Dihapus
 import javafx.util.Duration;
 
 import java.io.IOException;
@@ -31,20 +31,20 @@ import java.util.stream.Collectors;
  *
  * <p>Kelas ini mengatur:</p>
  * <ul>
- *   <li>Inisialisasi daftar antrian dan label sambutan.</li>
- *   <li>Filter berdasarkan nama pasien, poli, dan status.</li>
- *   <li>Auto-refresh data setiap 5 detik.</li>
- *   <li>Menampilkan tampilan kartu (card view) untuk setiap antrian.</li>
+ * <li>Inisialisasi daftar antrian dan label sambutan.</li>
+ * <li>Filter berdasarkan nama pasien, poli, dan status.</li>
+ * <li>Auto-refresh data setiap 5 detik.</li>
+ * <li>Menampilkan tampilan kartu (card view) untuk setiap antrian.</li>
  * </ul>
  *
  * <p>Kelas ini digunakan sebagai induk untuk:
  * {@link AdminDashboardController} dan {@link PatientDashboardController}.</p>
  *
  * @author
- *  Sulistyo Fajar Pratama,
- *  Dinda Diyah Arifa,
- *  Musthofa Agung Distyawan
- * @version 1.0
+ * Sulistyo Fajar Pratama,
+ * Dinda Diyah Arifa,
+ * Musthofa Agung Distyawan
+ * @version 1.1 (Modifikasi: Hapus dependensi ke AntrianDetailController)
  * @since 2025
  */
 public abstract class BaseDashboardController {
@@ -110,9 +110,9 @@ public abstract class BaseDashboardController {
     /**
      * Menerapkan filter pada daftar antrian berdasarkan:
      * <ul>
-     *   <li>Nama pasien</li>
-     *   <li>Poli</li>
-     *   <li>Status antrian</li>
+     * <li>Nama pasien</li>
+     * <li>Poli</li>
+     * <li>Status antrian</li>
      * </ul>
      */
     protected void applyFilters() {
@@ -179,12 +179,7 @@ public abstract class BaseDashboardController {
                     HBox metaBox = new HBox(10, postedAtLabel);
                     metaBox.setAlignment(Pos.CENTER_LEFT);
 
-                    // tombol detail hanya muncul jika pengguna adalah admin
-                    if (Main.loggedInUser instanceof Admin) {
-                        Button detailButton = new Button("Lihat Detail");
-                        detailButton.setOnAction(event -> showDetailAntrian(item));
-                        metaBox.getChildren().add(detailButton);
-                    }
+                    // Tombol "Lihat Detail" sudah dihapus dari sini
 
                     VBox contentBox = new VBox(10, titleBox, namaPasienLabel, spacer, metaBox);
                     HBox cardContent = new HBox(20, statusCircle, contentBox);
@@ -201,30 +196,6 @@ public abstract class BaseDashboardController {
         });
     }
 
-    /**
-     * Menampilkan jendela detail antrian dalam dialog modal.
-     * Digunakan terutama oleh admin untuk melihat dan mengedit data.
-     *
-     * @param antrian Objek antrian yang dipilih
-     */
-    protected void showDetailAntrian(Antrian antrian) {
-        if (autoRefreshTimeline != null) autoRefreshTimeline.pause();
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/AntrianDetail.fxml"));
-            Parent parent = loader.load();
-            AntrianDetailController controller = loader.getController();
-            controller.initData(antrian, this::loadAntrianData);
-
-            Stage stage = new Stage();
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setTitle("Detail Antrian #" + antrian.getId());
-            stage.setScene(new Scene(parent));
-            stage.showAndWait();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (autoRefreshTimeline != null) autoRefreshTimeline.play();
-    }
 
     /**
      * Mengembalikan warna indikator status pada tampilan kartu antrian.
@@ -259,6 +230,7 @@ public abstract class BaseDashboardController {
             autoRefreshTimeline.stop();
         }
         Main.loggedInUser = null;
-        new Main().changeScene("/fxml/Login.fxml", 600, 400);
+        
+        new Main().changeScene("/fxml/Login.fxml", 600, 400); 
     }
 }

@@ -1,215 +1,287 @@
 package com.antrian.core.service;
 
 import com.antrian.core.model.Admin;
-import com.antrian.core.model.Antrian;
 import com.antrian.core.model.Pasien;
 import com.antrian.core.model.User;
+import com.antrian.core.model.Antrian;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
- * Kelas {@code FileService} bertanggung jawab untuk menangani proses input-output file
- * pada sistem antrian pasien. Termasuk penyimpanan dan pembacaan data pengguna serta data antrian.
+ * Kelas {@code FileService} bertanggung jawab untuk membaca dan menulis
+ * data pengguna (User, Admin, Pasien) dan data antrian dari/ke file teks.
  *
- * <p>Kelas ini menyediakan fungsi untuk:</p>
+ * <p>Struktur file data:</p>
  * <ul>
- *   <li>Membaca dan menyimpan data {@link User}, {@link Admin}, dan {@link Pasien} dari <b>users.txt</b>.</li>
- *   <li>Membaca dan menyimpan data {@link Antrian} dari <b>antrian.txt</b>.</li>
- *   <li>Memproses status antrian secara otomatis berdasarkan waktu.</li>
+ * <li><b>users.txt:</b> nik;nama;alamat;noTelepon;email;tanggalLahir;password;[jabatan|noRekamMedis];role=admin/pasien</li>
+ * <li><b>antrian.txt:</b> id;nikPembuat;nikPasien;nama;alamat;noTelepon;poli;keluhan;status;timestamp</li>
  * </ul>
  *
- * <p>Semua data disimpan dalam format teks dengan delimiter semikolon (";").</p>
+ * <p>Semua file disimpan di folder "data" dalam direktori utama proyek.</p>
  *
  * @author
- *  Sulistyo Fajar Pratama,
- *  Dinda Diyah Arifa,
- *  Musthofa Agung Distyawan
+ * Sulistyo Fajar Pratama,
+ * Dinda Diyah Arifa,
+ * Musthofa Agung Distyawan
  * @version 1.0
  * @since 2025
  */
 public class FileService {
-    /** Nama file penyimpanan data pengguna. */
+
     private static final String USER_FILE = "users.txt";
-    /** Nama file penyimpanan data antrian. */
     private static final String ANTRIAN_FILE = "antrian.txt";
 
-    /**
-     * Memuat data antrian dari file dan memperbarui status antrian secara otomatis.
-     * Jika antrian berstatus "Baru" lebih dari 60 detik, status akan berubah menjadi "Sedang Berlangsung".
-     *
-     * @return Daftar objek {@link Antrian} yang telah diproses
-     * @throws IOException jika gagal membaca atau menulis file
-     */
-    public static List<Antrian> loadAndProcessAntrianStatus() throws IOException {
-        List<Antrian> antrianList = loadAntrian();
-        boolean needsSaving = false;
-        LocalDateTime now = LocalDateTime.now();
+    // ===========================
+    // ==== USER HANDLER ========
+    // ===========================
 
-        for (Antrian antrian : antrianList) {
-            if ("Baru".equals(antrian.getStatus())) {
-                Duration duration = Duration.between(antrian.getTimestamp(), now);
-                if (duration.toSeconds() >= 60) {
-                    antrian.setStatus("Sedang Berlangsung");
-                    needsSaving = true;
-                }
+    /**
+     * Membaca seluruh data pengguna dari file User.txt.
+     * Data akan dikonversi menjadi objek Admin atau Pasien sesuai dengan role.
+     *
+     * @return List dari objek User (Admin/Pasien)
+     * @throws IOException jika file tidak ditemukan atau rusak
+     */
+    public static List<User> loadUsers() throws IOException {
+        List<User> users = new ArrayList<>();
+
+        File file = new File(USER_FILE);
+        if (!file.exists()) {
+            System.out.println("[INFO] File User.txt belum ada, membuat file baru...");
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+            return users;
+        }
+
+        List<String> lines = Files.readAllLines(Paths.get(USER_FILE));
+
+        for (String line : lines) {
+            if (line.trim().isEmpty()) continue;
+
+            String[] parts = line.split(";");
+            if (parts.length < 8) continue; // format rusak
+
+            String role = parts[parts.length - 1].trim().toLowerCase();
+
+            if (role.equals("role=admin")) {
+                // Format: nik;nama;alamat;noTelp;email;lahir;pass;jabatan;role=admin
+                users.add(new Admin(
+                        parts[0],
+                        parts[1],
+                        parts[2],
+                        parts[3],
+                        parts[4],
+                        parts[5],
+                        parts[6],
+                        parts[7]
+                ));
+            } else if (role.equals("role=pasien")) {
+                // Format: nik;nama;alamat;noTelp;email;lahir;pass;rekamMedis;role=pasien
+                users.add(new Pasien(
+                        parts[0],
+                        parts[1],
+                        parts[2],
+                        parts[3],
+                        parts[4],
+                        parts[5],
+                        parts[6],
+                        parts[7]
+                ));
+            } else {
+                // fallback (jaga-jaga)
+                users.add(new User(
+                        parts[0],
+                        parts[1],
+                        parts[2],
+                        parts[3],
+                        parts[4],
+                        parts[5],
+                        parts[6]
+                ));
             }
         }
 
-        if (needsSaving) {
-            saveAntrian(antrianList);
+        return users;
+    }
+
+    /**
+     * Menyimpan daftar pengguna ke file User.txt.
+     * Setiap objek akan dikonversi ke format string sesuai role-nya.
+     *
+     * @param users daftar user yang akan disimpan
+     * @throws IOException jika terjadi kesalahan saat menulis file
+     */
+    public static void saveUsers(List<User> users) throws IOException {
+        File file = new File(USER_FILE);
+        file.getParentFile().mkdirs();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (User user : users) {
+                writer.write(user.toString());
+                writer.newLine();
+            }
+        }
+    }
+
+    // ===========================
+    // ==== ANTRIAN HANDLER ======
+    // ===========================
+
+    /**
+     * Membaca semua data antrian dari file Antrian.txt.
+     *
+     * @return List berisi semua data antrian
+     * @throws IOException jika file tidak ditemukan atau rusak
+     */
+    public static List<Antrian> loadAntrian() throws IOException {
+        List<Antrian> antrianList = new ArrayList<>();
+        File file = new File(ANTRIAN_FILE);
+
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            file.createNewFile();
+            return antrianList;
+        }
+
+        List<String> lines = Files.readAllLines(Paths.get(ANTRIAN_FILE));
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+        for (String line : lines) {
+            if (line.trim().isEmpty()) continue;
+            String[] parts = line.split(";");
+            if (parts.length < 10) continue;
+
+            try {
+                Antrian a = new Antrian(
+                        Integer.parseInt(parts[0]),
+                        parts[1],
+                        parts[2],
+                        parts[3],
+                        parts[4],
+                        parts[5],
+                        parts[6],
+                        parts[7].replace("\\n", "\n"),
+                        parts[8],
+                        LocalDateTime.parse(parts[9], formatter)
+                );
+                antrianList.add(a);
+            } catch (Exception e) {
+                System.err.println("[WARN] Gagal parse antrian: " + line);
+            }
         }
 
         return antrianList;
     }
 
     /**
-     * Menghapus seluruh isi file antrian.
-     * @throws IOException jika terjadi kesalahan saat mengosongkan file
-     */
-    public static void clearAntrianFile() throws IOException {
-        new FileWriter(ANTRIAN_FILE, false).close();
-    }
-
-    /**
-     * Memuat seluruh data pengguna dari file {@code users.txt}.
-     * @return Daftar pengguna yang berhasil dimuat
-     * @throws IOException jika file tidak ditemukan atau gagal dibaca
-     */
-    public static List<User> loadUsers() throws IOException {
-        if (!Files.exists(Paths.get(USER_FILE))) return new ArrayList<>();
-        try (var lines = Files.lines(Paths.get(USER_FILE))) {
-            return lines.map(FileService::parseUser).filter(Objects::nonNull).collect(Collectors.toList());
-        }
-    }
-
-    /**
-     * Menyimpan daftar pengguna ke file {@code users.txt}.
-     * @param users daftar pengguna yang akan disimpan
-     * @throws IOException jika gagal menulis ke file
-     */
-    public static void saveUsers(List<User> users) throws IOException {
-        List<String> lines = users.stream().map(User::toString).collect(Collectors.toList());
-        writeLines(USER_FILE, lines);
-    }
-
-    /**
-     * Memuat seluruh data antrian dari file {@code antrian.txt}.
-     * @return Daftar antrian yang berhasil dimuat
-     * @throws IOException jika file tidak ditemukan atau gagal dibaca
-     */
-    public static List<Antrian> loadAntrian() throws IOException {
-        if (!Files.exists(Paths.get(ANTRIAN_FILE))) return new ArrayList<>();
-        try (var lines = Files.lines(Paths.get(ANTRIAN_FILE))) {
-            return lines.map(FileService::parseAntrian).filter(Objects::nonNull).collect(Collectors.toList());
-        }
-    }
-
-    /**
-     * Menyimpan daftar antrian ke file {@code antrian.txt}.
+     * Menyimpan daftar antrian ke file Antrian.txt.
+     *
      * @param antrianList daftar antrian yang akan disimpan
-     * @throws IOException jika gagal menulis ke file
+     * @throws IOException jika terjadi kesalahan saat menulis file
      */
     public static void saveAntrian(List<Antrian> antrianList) throws IOException {
-        List<String> lines = antrianList.stream().map(Antrian::toString).collect(Collectors.toList());
-        writeLines(ANTRIAN_FILE, lines);
+        File file = new File(ANTRIAN_FILE);
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) parentDir.mkdirs();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (Antrian a : antrianList) {
+                writer.write(a.toString());
+                writer.newLine();
+            }
+        }
+    }
+
+    // ===========================
+    // ==== UTILITIES ============
+    // ===========================
+
+    /**
+     * Menambahkan satu user baru ke file tanpa menimpa data sebelumnya.
+     *
+     * @param user user baru
+     * @throws IOException jika gagal menulis ke file
+     */
+    public static void appendUser(User user) throws IOException {
+        File file = new File(USER_FILE);
+        file.getParentFile().mkdirs();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+            writer.write(user.toString());
+            writer.newLine();
+        }
     }
 
     /**
-     * Mengambil ID antrian berikutnya secara otomatis.
-     * @return ID baru (nilai tertinggi + 1)
+     * Menambahkan satu data antrian ke file tanpa menimpa data sebelumnya.
+     *
+     * @param antrian data antrian baru
+     * @throws IOException jika gagal menulis ke file
+     */
+
+    public static void appendAntrian(Antrian antrian) throws IOException {
+        File file = new File(ANTRIAN_FILE);
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) parentDir.mkdirs();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+            writer.write(antrian.toString());
+            writer.newLine();
+        }
+    }
+
+    /**
+     * Memuat semua antrian dan memperbarui status otomatis jika diperlukan.
+     * Untuk kompatibilitas dengan controller lama.
+     *
+     * @return Daftar antrian yang telah diproses
      * @throws IOException jika gagal membaca file
      */
+    public static List<Antrian> loadAndProcessAntrianStatus() throws IOException {
+        List<Antrian> list = loadAntrian();
+
+        // Jika ingin memproses otomatis, misal ubah status "Baru" menjadi "Diproses"
+        for (Antrian a : list) {
+            if (a.getStatus() == null || a.getStatus().isEmpty()) {
+                a.setStatus("Baru");
+            }
+        }
+
+        return list;
+    }
+
+    /**
+     * Mengambil ID antrian berikutnya berdasarkan data terakhir di file.
+     *
+     * @return nilai ID berikutnya (increment)
+     * @throws IOException jika file tidak dapat dibaca
+     */
     public static int getNextAntrianId() throws IOException {
-        List<Antrian> antrianList = loadAntrian();
-        if (antrianList.isEmpty()) return 1;
-        return antrianList.stream().mapToInt(Antrian::getId).max().orElse(0) + 1;
-    }
-
-    /**
-     * Menulis daftar string ke dalam file teks.
-     * @param fileName nama file tujuan
-     * @param lines daftar baris yang akan ditulis
-     * @throws IOException jika gagal menulis file
-     */
-    static void writeLines(String fileName, List<String> lines) throws IOException {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(fileName))) {
-            for (String line : lines) {
-                writer.println(line);
-            }
+        List<Antrian> list = loadAntrian();
+        if (list.isEmpty()) {
+            return 1;
+        } else {
+            return list.get(list.size() - 1).getId() + 1;
         }
     }
 
     /**
-     * Mengubah satu baris teks dari file {@code users.txt} menjadi objek {@link User}.
-     * Jika terdapat penanda role, akan dikonversi ke subclass {@link Admin} atau {@link Pasien}.
+     * Menghapus seluruh data dalam file Antrian.txt.
      *
-     * @param line Baris teks dari file
-     * @return Objek {@code User}, {@code Admin}, atau {@code Pasien}
+     * @throws IOException jika gagal membersihkan file
      */
-    private static User parseUser(String line) {
-        try {
-            String[] parts = line.split(";", -1);
-            if (parts.length < 7) return null;
-
-            String role = parts.length >= 8 ? parts[7] : "";
-
-            if ("admin".equalsIgnoreCase(role)) {
-                return new Admin(parts[0], parts[1], parts[2], parts[3],
-                        parts[4], parts[5], parts[6], "Administrator");
-            } else {
-                return new Pasien(parts[0], parts[1], parts[2], parts[3],
-                        parts[4], parts[5], parts[6], "RM-" + parts[0]);
-            }
-
-        } catch (Exception e) {
-            System.err.println("Gagal mem-parsing baris di users.txt: " + line);
-            return null;
+    public static void clearAntrianFile() throws IOException {
+        File file = new File(ANTRIAN_FILE);
+        if (file.exists()) {
+            new FileWriter(file, false).close();
+            System.out.println("[INFO] Semua data antrian telah dihapus.");
         }
     }
 
-    /**
-     * Mengubah satu baris teks dari file {@code antrian.txt} menjadi objek {@link Antrian}.
-     * Mendukung dua format: format baru (10 kolom) dan format lama (9 kolom).
-     *
-     * @param line Baris teks dari file
-     * @return Objek {@link Antrian} yang berhasil dibuat, atau null jika data korup
-     */
-    private static Antrian parseAntrian(String line) {
-        try {
-            String[] parts = line.split(";", -1);
-
-            if (parts.length == 10) {
-                return new Antrian(
-                        Integer.parseInt(parts[0]), parts[1], parts[2], parts[3], parts[4], parts[5], parts[6],
-                        parts[7].replace("\\n", "\n"), parts[8],
-                        LocalDateTime.parse(parts[9], DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-
-            } else if (parts.length == 9) {
-                System.out.println("Mendeteksi & memigrasi format data antrian lama untuk Antrian #" + parts[0]);
-                String nikPasienLama = parts[1];
-                return new Antrian(
-                        Integer.parseInt(parts[0]), nikPasienLama, nikPasienLama, parts[2], parts[3], parts[4], parts[5],
-                        parts[6].replace("\\n", "\n"), parts[7],
-                        LocalDateTime.parse(parts[8], DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-
-            } else {
-                System.err.println("Mengabaikan baris data korup di antrian.txt: " + line);
-                return null;
-            }
-        } catch (Exception e) {
-            System.err.println("Gagal mem-parsing baris di antrian.txt: " + line);
-            return null;
-        }
-    }
 }
