@@ -40,13 +40,8 @@ public class AdminDashboardController extends BaseDashboardController {
     @FXML
     private ComboBox<String> dateFilterComboBox;
 
-    // ==========================================================
-    // == KOMPONEN FXML DARI AntrianDetailController ==
-    // =GANDA=PENTING: Anda HARUS menambahkan komponen ini di file FXML Anda!
-    // ==========================================================
-
     /** Panel/layout yang berisi semua form detail, disembunyikan jika tidak ada item dipilih. */
-    @FXML private VBox detailPane; // Asumsi Anda menggunakan VBox dengan fx:id="detailPane"
+    @FXML private VBox detailPane;
 
     @FXML private Label antrianIdLabel;
     @FXML private TextField nikField;
@@ -84,11 +79,9 @@ public class AdminDashboardController extends BaseDashboardController {
         dateFilterComboBox.getItems().addAll("Semua Waktu", "Minggu Ini", "Bulan Ini", "Tahun Ini");
         dateFilterComboBox.setValue("Semua Waktu");
         dateFilterComboBox.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
-
-        // --- Logic Merged from AntrianDetailController ---
         
         // 1. Sembunyikan panel detail di awal
-        if (detailPane != null) { // Cek null untuk keamanan jika FXML belum diupdate
+        if (detailPane != null) {
             detailPane.setVisible(false);
             detailPane.setManaged(false);
         }
@@ -100,10 +93,9 @@ public class AdminDashboardController extends BaseDashboardController {
 
         // 3. Setup ListView selection listener
         antrianListView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            this.currentAntrian = newSelection; // Simpan antrian yang dipilih
+            this.currentAntrian = newSelection;
 
             if (newSelection != null) {
-                // Jika item dipilih, isi data dan tampilkan panel
                 populateFields(newSelection);
                 if (detailPane != null) {
                     detailPane.setVisible(true);

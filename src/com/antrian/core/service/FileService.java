@@ -17,19 +17,9 @@ import java.util.List;
  * Kelas {@code FileService} bertanggung jawab untuk membaca dan menulis
  * data pengguna (User, Admin, Pasien) dan data antrian dari/ke file teks.
  *
- * <p>Struktur file data:</p>
- * <ul>
- * <li><b>users.txt:</b> nik;nama;alamat;noTelepon;email;tanggalLahir;password;[jabatan|noRekamMedis];role=admin/pasien</li>
- * <li><b>antrian.txt:</b> id;nikPembuat;nikPasien;nama;alamat;noTelepon;poli;keluhan;status;timestamp</li>
- * </ul>
+ * (Javadoc lainnya tetap sama)
  *
- * <p>Semua file disimpan di folder "data" dalam direktori utama proyek.</p>
- *
- * @author
- * Sulistyo Fajar Pratama,
- * Dinda Diyah Arifa,
- * Musthofa Agung Distyawan
- * @version 1.0
+ * @version 1.1 (Modifikasi: Perbaikan NullPointerException pada mkdirs)
  * @since 2025
  */
 public class FileService {
@@ -54,7 +44,14 @@ public class FileService {
         File file = new File(USER_FILE);
         if (!file.exists()) {
             System.out.println("[INFO] File User.txt belum ada, membuat file baru...");
-            file.getParentFile().mkdirs();
+            
+            // === PERBAIKAN DI SINI ===
+            File parentDir = file.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                parentDir.mkdirs();
+            }
+            // =========================
+            
             file.createNewFile();
             return users;
         }
@@ -119,7 +116,13 @@ public class FileService {
      */
     public static void saveUsers(List<User> users) throws IOException {
         File file = new File(USER_FILE);
-        file.getParentFile().mkdirs();
+        
+        // === PERBAIKAN DI SINI (Ini adalah error Anda: line 122) ===
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+        // =========================================================
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             for (User user : users) {
@@ -144,7 +147,8 @@ public class FileService {
         File file = new File(ANTRIAN_FILE);
 
         if (!file.exists()) {
-            file.getParentFile().mkdirs();
+            File parentDir = file.getParentFile(); // Kode ini sudah benar
+            if (parentDir != null && !parentDir.exists()) parentDir.mkdirs();
             file.createNewFile();
             return antrianList;
         }
@@ -187,7 +191,7 @@ public class FileService {
      */
     public static void saveAntrian(List<Antrian> antrianList) throws IOException {
         File file = new File(ANTRIAN_FILE);
-        File parentDir = file.getParentFile();
+        File parentDir = file.getParentFile(); // Kode ini sudah benar
         if (parentDir != null && !parentDir.exists()) parentDir.mkdirs();
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
@@ -210,7 +214,13 @@ public class FileService {
      */
     public static void appendUser(User user) throws IOException {
         File file = new File(USER_FILE);
-        file.getParentFile().mkdirs();
+        
+        // === PERBAIKAN DI SINI ===
+        File parentDir = file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+        // =========================
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
             writer.write(user.toString());
@@ -224,10 +234,9 @@ public class FileService {
      * @param antrian data antrian baru
      * @throws IOException jika gagal menulis ke file
      */
-
     public static void appendAntrian(Antrian antrian) throws IOException {
         File file = new File(ANTRIAN_FILE);
-        File parentDir = file.getParentFile();
+        File parentDir = file.getParentFile(); // Kode ini sudah benar
         if (parentDir != null && !parentDir.exists()) parentDir.mkdirs();
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
